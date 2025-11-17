@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   Alert,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { colors } from '../../utils/colors';
 import { useReports } from '../../hooks/useReports';
 import ReportCard from '../../Components/ReportCard/ReportCard';
@@ -21,13 +22,25 @@ export default function ReportsScreen({ navigation, route }) {
   const categoryParam = route?.params?.category || null;
 
   const [searchText, setSearchText] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('infraestructura');
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState(null);
   const [selectedPriority, setSelectedPriority] = useState(null);
   const [sortBy, setSortBy] = useState('newest');
   const [viewMode, setViewMode] = useState('list'); // 'list' o 'map'
   const [showFilters, setShowFilters] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null); // 'status', 'priority', 'sort'
+
+  // Limpiar filtros cada vez que la pantalla recibe foco
+  useFocusEffect(
+    useCallback(() => {
+      setSearchText('');
+      setSelectedCategory(null);
+      setSelectedStatus(null);
+      setSelectedPriority(null);
+      setSortBy('newest');
+      setOpenDropdown(null);
+    }, [])
+  );
 
   // Hook de reportes con filtros
   const { filteredReports, categories, isLoading } = useReports({
@@ -323,6 +336,14 @@ export default function ReportsScreen({ navigation, route }) {
           {/* Categories Section */}
           <Text style={styles.sectionTitle}>Categorías</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesScroll}>
+            <TouchableOpacity
+              style={[styles.categoryChip, selectedCategory === null && styles.categoryChipActive]}
+              onPress={() => setSelectedCategory(null)}
+            >
+              <Text style={[styles.categoryChipText, selectedCategory === null && styles.categoryChipTextActive]}>
+                Todas
+              </Text>
+            </TouchableOpacity>
             <TouchableOpacity
               style={[styles.categoryChip, selectedCategory === 'infraestructura' && styles.categoryChipActive]}
               onPress={() => setSelectedCategory('infraestructura')}
