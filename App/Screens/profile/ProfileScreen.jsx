@@ -19,6 +19,7 @@ export default function ProfileScreen({ navigation }) {
   const { user, logout, isAuthenticated } = useAuth();
   const { showToast } = useToast();
   const isGuest = !isAuthenticated || !user;
+  const isAdmin = user?.role === 'admin';
 
   // Estado para CustomConfirmAlert
   const [alertVisible, setAlertVisible] = useState(false);
@@ -128,58 +129,64 @@ export default function ProfileScreen({ navigation }) {
         <ProfileHeader
           user={user}
           isGuest={isGuest}
+          isAdmin={isAdmin}
           onCreateReport={handleCreateReport}
           onLogin={handleLogin}
         />
 
-        {/* Contenido de Mis Reportes */}
-        {activeTab === 'reportes' && (
+        {/* Contenido solo para usuarios normales (no admin) */}
+        {!isAdmin && (
           <>
-            <StatsCards reports={userReports} isGuest={isGuest} />
+            {/* Contenido de Mis Reportes */}
+            {activeTab === 'reportes' && (
+              <>
+                <StatsCards reports={userReports} isGuest={isGuest} />
 
-            {/* Sección de Reportes usando ReportCard */}
-            {!isGuest && userReports.length > 0 && (
-              <View style={styles.reportsSection}>
-                <View style={styles.reportsSectionHeader}>
-                  <Text style={styles.sectionTitle}>Mis Reportes</Text>
-                  <TouchableOpacity onPress={handleViewAllReports}>
-                    <Text style={styles.viewAllText}>Ver todos</Text>
-                  </TouchableOpacity>
-                </View>
-
-                <View style={styles.reportsGrid}>
-                  {userReports.slice(0, 4).map((report) => (
-                    <View key={report.id} style={styles.reportCardWrapper}>
-                      <ReportCard report={report} onPress={handleReportPress} />
+                {/* Sección de Reportes usando ReportCard */}
+                {!isGuest && userReports.length > 0 && (
+                  <View style={styles.reportsSection}>
+                    <View style={styles.reportsSectionHeader}>
+                      <Text style={styles.sectionTitle}>Mis Reportes</Text>
+                      <TouchableOpacity onPress={handleViewAllReports}>
+                        <Text style={styles.viewAllText}>Ver todos</Text>
+                      </TouchableOpacity>
                     </View>
-                  ))}
-                </View>
-              </View>
+
+                    <View style={styles.reportsGrid}>
+                      {userReports.slice(0, 4).map((report) => (
+                        <View key={report.id} style={styles.reportCardWrapper}>
+                          <ReportCard report={report} onPress={handleReportPress} />
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
+              </>
             )}
+
+            {/* Contenido de Mis Datos */}
+            {activeTab === 'datos' && (
+              <UserDataForm
+                formNombre={formNombre}
+                setFormNombre={setFormNombre}
+                formEmail={formEmail}
+                setFormEmail={setFormEmail}
+                formFechaNacimiento={formFechaNacimiento}
+                showDatePicker={showDatePicker}
+                onDateChange={onDateChange}
+                formatDate={formatDate}
+                openDatePicker={openDatePicker}
+                onUpdate={handleUpdateData}
+              />
+            )}
+
+            <TabButtons
+              activeTab={activeTab}
+              onReportsPress={handleMyReports}
+              onDataPress={handleMyData}
+            />
           </>
         )}
-
-        {/* Contenido de Mis Datos */}
-        {activeTab === 'datos' && (
-          <UserDataForm
-            formNombre={formNombre}
-            setFormNombre={setFormNombre}
-            formEmail={formEmail}
-            setFormEmail={setFormEmail}
-            formFechaNacimiento={formFechaNacimiento}
-            showDatePicker={showDatePicker}
-            onDateChange={onDateChange}
-            formatDate={formatDate}
-            openDatePicker={openDatePicker}
-            onUpdate={handleUpdateData}
-          />
-        )}
-
-        <TabButtons
-          activeTab={activeTab}
-          onReportsPress={handleMyReports}
-          onDataPress={handleMyData}
-        />
 
         {/* Botón de cerrar sesión */}
         {!isGuest && (

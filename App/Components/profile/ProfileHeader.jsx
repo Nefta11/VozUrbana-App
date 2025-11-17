@@ -8,6 +8,7 @@ const ProfileHeader = ({
   isGuest,
   onCreateReport,
   onLogin,
+  isAdmin = false,
 }) => {
   const getUserInitial = () => {
     if (isGuest || !user?.nombre) return 'U';
@@ -51,7 +52,7 @@ const ProfileHeader = ({
         </View>
       </View>
 
-      {!isGuest && (
+      {!isGuest && !isAdmin && (
         <TouchableOpacity style={styles.createReportButton} onPress={onCreateReport}>
           <Text style={styles.createReportText}>Crear Reporte</Text>
         </TouchableOpacity>
