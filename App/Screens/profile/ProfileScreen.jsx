@@ -1,139 +1,140 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
-  StatusBar,
-  Image,
   Alert,
-  FlatList,
 } from 'react-native';
-import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../utils/colors';
 import CustomHeader from '../../Components/navigation/CustomHeader';
 import ReportCard from '../../Components/ReportCard/ReportCard';
 import { useAuth } from '../../context/AuthContext';
 
 export default function ProfileScreen({ navigation }) {
-  const { user, token, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated } = useAuth();
   const isGuest = !isAuthenticated || !user;
-  
-  // Estados para estadísticas de reportes
-  const [reportStats, setReportStats] = useState({
-    reportesCreados: 0,
-    reportesNuevos: 0,
-    reportesEnProceso: 0,
-    reportesResueltos: 0,
-  });
-  
-  // Función para obtener la inicial del primer nombre
-  const getUserInitial = () => {
-    if (isGuest || !user?.nombre) return 'U';
-    return user.nombre.charAt(0).toUpperCase();
-  };
-  
-  // Función para formatear la fecha de registro
-  const getFormattedDate = () => {
-    if (isGuest || !user?.fechaRegistro) return '';
-    // Si viene del backend, formatear la fecha
-    const date = new Date(user.fechaRegistro);
-    return date.toLocaleDateString('es-ES', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
-  };
 
   // Reportes de ejemplo del usuario (formato compatible con ReportCard)
-  const [userReports, setUserReports] = useState(isGuest ? [] : [
+  const [userReports] = useState([
     {
       id: 1,
       titulo: 'Semáforo dañado en intersección principal',
       descripcion: 'El semáforo ubicado en la intersección de Av. Central con Calle 15 presenta fallas intermitentes, causando riesgo para peatones y conductores.',
-      categoria: 'Infraestructura',
+      categoria: 'infraestructura',
       estado: 'resuelto',
       prioridad: 'alta',
       fecha_creacion: '2025-11-15T08:30:00Z',
-      ubicacion: { latitud: 9.9326, longitud: -84.0775 },
-      imagen: 'https://example.com/semaforo.jpg',
+      ubicacion: 'Av. Central con Calle 15, Centro',
+      latitud: 20.2745,
+      longitud: -97.9557,
+      imagen: null,
       votos_positivos: 12,
       votos_negativos: 1,
       comentarios: [{ id: 1, texto: 'Ya lo reporté también' }],
-      usuario_id: 1,
     },
     {
       id: 2,
       titulo: 'Fuga de agua en tubería principal',
       descripcion: 'Se observa una fuga considerable de agua potable en la tubería principal, desperdiciando el recurso y creando charcos en la vía.',
-      categoria: 'Servicios Públicos',
+      categoria: 'servicios',
       estado: 'en_proceso',
       prioridad: 'media',
       fecha_creacion: '2025-11-14T14:20:00Z',
-      ubicacion: { latitud: 9.9280, longitud: -84.0830 },
+      ubicacion: 'Calle Hidalgo #234, Col. Norte',
+      latitud: 20.2755,
+      longitud: -97.9567,
       imagen: null,
       votos_positivos: 8,
       votos_negativos: 0,
       comentarios: [],
-      usuario_id: 1,
     },
     {
       id: 3,
       titulo: 'Bache profundo en avenida principal',
       descripcion: 'Bache de gran tamaño que representa peligro para vehículos y motocicletas, especialmente en horas nocturnas.',
-      categoria: 'Infraestructura',
+      categoria: 'infraestructura',
       estado: 'nuevo',
       prioridad: 'media',
       fecha_creacion: '2025-11-13T16:45:00Z',
-      ubicacion: { latitud: 9.9350, longitud: -84.0820 },
-      imagen: 'https://example.com/bache.jpg',
+      ubicacion: 'Av. Revolución #456, Centro',
+      latitud: 20.2735,
+      longitud: -97.9547,
+      imagen: null,
       votos_positivos: 15,
       votos_negativos: 2,
       comentarios: [{ id: 1, texto: 'Muy peligroso' }, { id: 2, texto: 'Urge reparación' }],
-      usuario_id: 1,
     },
     {
       id: 4,
       titulo: 'Luminaria pública sin funcionamiento',
       descripcion: 'La luminaria en el parque central no funciona desde hace una semana, afectando la seguridad del área.',
-      categoria: 'Seguridad',
+      categoria: 'seguridad',
       estado: 'nuevo',
       prioridad: 'baja',
       fecha_creacion: '2025-11-12T19:30:00Z',
-      ubicacion: { latitud: 9.9300, longitud: -84.0790 },
+      ubicacion: 'Parque Central, Centro',
+      latitud: 20.2725,
+      longitud: -97.9537,
       imagen: null,
       votos_positivos: 6,
       votos_negativos: 0,
       comentarios: [],
-      usuario_id: 1,
     },
   ]);
 
-  // Filtrar reportes del usuario actual
-  const filteredUserReports = isGuest ? [] : userReports.filter(report => report.usuario_id === user?.id);
-
-  // Actualizar estadísticas basadas en reportes
-  useEffect(() => {
-    if (!isGuest) {
-      const creados = filteredUserReports.length;
-      const nuevos = filteredUserReports.filter(r => r.estado === 'nuevo').length;
-      const enProceso = filteredUserReports.filter(r => r.estado === 'en_proceso').length;
-      const resueltos = filteredUserReports.filter(r => r.estado === 'resuelto').length;
-
-      setReportStats({
-        reportesCreados: creados,
-        reportesNuevos: nuevos,
-        reportesEnProceso: enProceso,
-        reportesResueltos: resueltos,
-      });
+  // Calcular estadísticas de forma optimizada con useMemo
+  const reportStats = useMemo(() => {
+    if (isGuest) {
+      return {
+        reportesCreados: 0,
+        reportesNuevos: 0,
+        reportesEnProceso: 0,
+        reportesResueltos: 0,
+      };
     }
+
+    // Calcular todo en un solo loop para mejor rendimiento
+    const stats = userReports.reduce(
+      (acc, report) => {
+        acc.reportesCreados++;
+        if (report.estado === 'nuevo') acc.reportesNuevos++;
+        else if (report.estado === 'en_proceso') acc.reportesEnProceso++;
+        else if (report.estado === 'resuelto') acc.reportesResueltos++;
+        return acc;
+      },
+      {
+        reportesCreados: 0,
+        reportesNuevos: 0,
+        reportesEnProceso: 0,
+        reportesResueltos: 0,
+      }
+    );
+
+    return stats;
   }, [isGuest, userReports]);
 
+  // Función para obtener la inicial del primer nombre
+  const getUserInitial = () => {
+    if (isGuest || !user?.nombre) return 'U';
+    return user.nombre.charAt(0).toUpperCase();
+  };
+
+  // Función para formatear la fecha de registro
+  const getFormattedDate = () => {
+    if (isGuest || !user?.fechaRegistro) return '';
+    const date = new Date(user.fechaRegistro);
+    return date.toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  };
+
   const handleLogin = () => {
-    Alert.alert('Iniciar Sesión', 'Redirigiendo al login...');
-    // navigation.navigate('Login');
+    navigation.navigate('Login');
   };
 
   const handleLogout = () => {
@@ -157,12 +158,20 @@ export default function ProfileScreen({ navigation }) {
     );
   };
 
+  const handleCreateReport = () => {
+    if (isGuest) {
+      Alert.alert('Acceso Requerido', 'Debes iniciar sesión para crear un reporte');
+      return;
+    }
+    navigation.navigate('CreateReport');
+  };
+
   const handleMyReports = () => {
     if (isGuest) {
       Alert.alert('Acceso Requerido', 'Debes iniciar sesión para ver tus reportes');
       return;
     }
-    Alert.alert('Mis Reportes', 'Navegando a mis reportes...');
+    navigation.navigate('Reports');
   };
 
   const handleMyData = () => {
@@ -170,7 +179,11 @@ export default function ProfileScreen({ navigation }) {
       Alert.alert('Acceso Requerido', 'Debes iniciar sesión para editar tus datos');
       return;
     }
-    Alert.alert('Mis Datos', 'Navegando a editar datos...');
+    Alert.alert('Mis Datos', 'Funcionalidad en desarrollo');
+  };
+
+  const handleReportPress = (report) => {
+    navigation.navigate('ReportDetail', { reportId: report.id });
   };
 
   const handleInfoPress = () => {
@@ -227,7 +240,7 @@ export default function ProfileScreen({ navigation }) {
             </View>
             
             {!isGuest && (
-              <TouchableOpacity style={styles.createReportButton} onPress={() => Alert.alert('Crear Reporte')}>
+              <TouchableOpacity style={styles.createReportButton} onPress={handleCreateReport}>
                 <Text style={styles.createReportText}>Crear Reporte</Text>
               </TouchableOpacity>
             )}
@@ -263,7 +276,7 @@ export default function ProfileScreen({ navigation }) {
         </View>
 
         {/* Sección de Reportes usando ReportCard */}
-        {!isGuest && filteredUserReports.length > 0 && (
+        {!isGuest && userReports.length > 0 && (
           <View style={styles.reportsSection}>
             <View style={styles.reportsSectionHeader}>
               <Text style={styles.sectionTitle}>Mis Reportes</Text>
@@ -271,16 +284,11 @@ export default function ProfileScreen({ navigation }) {
                 <Text style={styles.viewAllText}>Ver todos</Text>
               </TouchableOpacity>
             </View>
-            
+
             <View style={styles.reportsGrid}>
-              {filteredUserReports.slice(0, 4).map((report) => (
+              {userReports.slice(0, 4).map((report) => (
                 <View key={report.id} style={styles.reportCardWrapper}>
-                  <ReportCard
-                    report={report}
-                    onPress={(selectedReport) => {
-                      Alert.alert('Reporte', `Navegando al detalle de: ${selectedReport.titulo}`);
-                    }}
-                  />
+                  <ReportCard report={report} onPress={handleReportPress} />
                 </View>
               ))}
             </View>
@@ -380,11 +388,6 @@ const styles = StyleSheet.create({
   userDate: {
     fontSize: 14,
     color: colors.textGray,
-  },
-  guestText: {
-    fontSize: 14,
-    color: colors.textGray,
-    fontStyle: 'italic',
   },
   createReportButton: {
     backgroundColor: colors.primary,
