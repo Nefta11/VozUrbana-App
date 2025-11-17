@@ -15,20 +15,37 @@ import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { colors } from '../../utils/colors';
 import CustomHeader from '../../Components/navigation/CustomHeader';
 import ReportCard from '../../Components/ReportCard/ReportCard';
+import { useAuth } from '../../context/AuthContext';
 
 export default function ProfileScreen({ navigation }) {
-  const [isGuest, setIsGuest] = useState(false); // Para detectar si es usuario invitado
-  const [user, setUser] = useState({
-    id: 1, // ID del usuario para filtrar reportes
-    nombre: isGuest ? 'Usuario Invitado' : 'Orlando Méndez Montes',
-    email: isGuest ? null : 'om@gmail.com',
-    fechaRegistro: '23 de Octubre 2025',
-    avatar: null,
-    reportesCreados: isGuest ? 0 : 24,
-    reportesNuevos: isGuest ? 0 : 1,
-    reportesEnProceso: isGuest ? 0 : 4,
-    reportesResueltos: isGuest ? 0 : 2,
+  const { user, token, logout, isAuthenticated } = useAuth();
+  const isGuest = !isAuthenticated || !user;
+  
+  // Estados para estadísticas de reportes
+  const [reportStats, setReportStats] = useState({
+    reportesCreados: 0,
+    reportesNuevos: 0,
+    reportesEnProceso: 0,
+    reportesResueltos: 0,
   });
+  
+  // Función para obtener la inicial del primer nombre
+  const getUserInitial = () => {
+    if (isGuest || !user?.nombre) return 'U';
+    return user.nombre.charAt(0).toUpperCase();
+  };
+  
+  // Función para formatear la fecha de registro
+  const getFormattedDate = () => {
+    if (isGuest || !user?.fechaRegistro) return '';
+    // Si viene del backend, formatear la fecha
+    const date = new Date(user.fechaRegistro);
+    return date.toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
 
   // Reportes de ejemplo del usuario (formato compatible con ReportCard)
   const [userReports, setUserReports] = useState(isGuest ? [] : [
@@ -95,7 +112,7 @@ export default function ProfileScreen({ navigation }) {
   ]);
 
   // Filtrar reportes del usuario actual
-  const filteredUserReports = userReports.filter(report => report.usuario_id === user.id);
+  const filteredUserReports = isGuest ? [] : userReports.filter(report => report.usuario_id === user?.id);
 
   // Actualizar estadísticas basadas en reportes
   useEffect(() => {
@@ -104,14 +121,13 @@ export default function ProfileScreen({ navigation }) {
       const nuevos = filteredUserReports.filter(r => r.estado === 'nuevo').length;
       const enProceso = filteredUserReports.filter(r => r.estado === 'en_proceso').length;
       const resueltos = filteredUserReports.filter(r => r.estado === 'resuelto').length;
-      
-      setUser(prev => ({
-        ...prev,
+
+      setReportStats({
         reportesCreados: creados,
         reportesNuevos: nuevos,
         reportesEnProceso: enProceso,
         reportesResueltos: resueltos,
-      }));
+      });
     }
   }, [isGuest, userReports]);
 
@@ -129,8 +145,8 @@ export default function ProfileScreen({ navigation }) {
         {
           text: 'Cerrar Sesión',
           style: 'destructive',
-          onPress: () => {
-            setIsGuest(true);
+          onPress: async () => {
+            await logout();
             navigation.getParent()?.reset({
               index: 0,
               routes: [{ name: 'Home' }],
@@ -177,19 +193,21 @@ export default function ProfileScreen({ navigation }) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Profile Header Section - Como en la primera imagen */}
+        {/* Profile Header Section - Como en la imagen */}
         <View style={styles.profileSection}>
           <View style={styles.profileHeader}>
-            {/* Avatar circular con inicial */}
+            {/* Avatar circular con inicial del usuario */}
             <View style={styles.avatarContainer}>
               <View style={styles.avatar}>
-                <Text style={styles.avatarInitial}>O</Text>
+                <Text style={styles.avatarInitial}>{getUserInitial()}</Text>
               </View>
             </View>
             
             <View style={styles.userInfo}>
-              <Text style={styles.userName}>{user.nombre}</Text>
-              {!isGuest && (
+              <Text style={styles.userName}>
+                {isGuest ? 'Usuario Invitado' : user?.nombre || 'Usuario'}
+              </Text>
+              {!isGuest && user && (
                 <>
                   <View style={styles.contactInfo}>
                     <MaterialIcons name="email" size={16} color={colors.textGray} />
@@ -197,12 +215,14 @@ export default function ProfileScreen({ navigation }) {
                   </View>
                   <View style={styles.contactInfo}>
                     <MaterialIcons name="calendar-today" size={16} color={colors.textGray} />
-                    <Text style={styles.userDate}>Miembro desde {user.fechaRegistro}</Text>
+                    <Text style={styles.userDate}>Miembro desde {getFormattedDate()}</Text>
                   </View>
                 </>
               )}
               {isGuest && (
-                <Text style={styles.guestText}>Usuario Invitado</Text>
+                <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+                  <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
+                </TouchableOpacity>
               )}
             </View>
             
@@ -218,25 +238,25 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.statsSection}>
           <View style={styles.statsRow}>
             <View style={[styles.statCard, styles.totalCard]}>
-              <Text style={styles.totalNumber}>{user.reportesCreados}</Text>
+              <Text style={styles.totalNumber}>{reportStats.reportesCreados}</Text>
               <Text style={styles.totalLabel}>Total</Text>
               <Text style={styles.totalSubLabel}>reportes</Text>
             </View>
             
             <View style={[styles.statCard, styles.newCard]}>
-              <Text style={styles.newNumber}>{user.reportesNuevos}</Text>
+              <Text style={styles.newNumber}>{reportStats.reportesNuevos}</Text>
               <Text style={styles.newLabel}>Nuevos</Text>
             </View>
           </View>
           
           <View style={styles.statsRow}>
             <View style={[styles.statCard, styles.processCard]}>
-              <Text style={styles.processNumber}>{user.reportesEnProceso}</Text>
+              <Text style={styles.processNumber}>{reportStats.reportesEnProceso}</Text>
               <Text style={styles.processLabel}>En proceso</Text>
             </View>
             
             <View style={[styles.statCard, styles.resolvedCard]}>
-              <Text style={styles.resolvedNumber}>{user.reportesResueltos}</Text>
+              <Text style={styles.resolvedNumber}>{reportStats.reportesResueltos}</Text>
               <Text style={styles.resolvedLabel}>Resueltos</Text>
             </View>
           </View>
@@ -341,10 +361,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   userName: {
-    fontSize: 20,
+    fontSize: 24, // Nombre más grande como en la imagen
     fontWeight: '700',
     color: colors.textDark,
     marginBottom: 8,
+    lineHeight: 28,
   },
   contactInfo: {
     flexDirection: 'row',
@@ -373,6 +394,19 @@ const styles = StyleSheet.create({
   },
   createReportText: {
     fontSize: 14,
+    color: colors.textWhite,
+    fontWeight: '600',
+  },
+  loginButton: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    alignSelf: 'flex-start',
+    marginTop: 4,
+  },
+  loginButtonText: {
+    fontSize: 12,
     color: colors.textWhite,
     fontWeight: '600',
   },
