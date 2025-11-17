@@ -11,6 +11,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../utils/colors';
 import CustomHeader from '../../Components/navigation/CustomHeader';
 import ReportCard from '../../Components/ReportCard/ReportCard';
+import CustomConfirmAlert from '../../Components/generals/CustomConfirmAlert';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 
@@ -18,6 +19,9 @@ export default function ProfileScreen({ navigation }) {
   const { user, logout, isAuthenticated } = useAuth();
   const { showToast } = useToast();
   const isGuest = !isAuthenticated || !user;
+  
+  // Estado para CustomConfirmAlert
+  const [alertVisible, setAlertVisible] = useState(false);
 
   // Reportes de ejemplo del usuario (formato compatible con ReportCard)
   const [userReports] = useState([
@@ -140,29 +144,23 @@ export default function ProfileScreen({ navigation }) {
   };
 
   const handleLogout = () => {
-    Alert.alert(
-      'Cerrar Sesión',
-      '¿Estás seguro que deseas cerrar sesión?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Cerrar Sesión',
-          style: 'destructive',
-          onPress: async () => {
-            await logout();
-            // Navegar a Landing
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'Landing' }],
-            });
-            // Mostrar toast de despedida
-            setTimeout(() => {
-              showToast('Cerraste sesión correctamente', 'info');
-            }, 500);
-          },
-        },
-      ]
-    );
+    setAlertVisible(true);
+  };
+  
+  const confirmLogout = async () => {
+    setAlertVisible(false);
+    await logout();
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Landing' }],
+    });
+    setTimeout(() => {
+      showToast('Cerraste sesión correctamente', 'info');
+    }, 500);
+  };
+  
+  const cancelLogout = () => {
+    setAlertVisible(false);
   };
 
   const handleCreateReport = () => {
@@ -213,24 +211,24 @@ export default function ProfileScreen({ navigation }) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Profile Header Section - Como en la imagen */}
+        {/* Profile Header Section - Layout horizontal como en la imagen */}
         <View style={styles.profileSection}>
-          <View style={styles.profileHeader}>
-            {/* Avatar circular con inicial del usuario */}
-            <View style={styles.avatarContainer}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarInitial}>{getUserInitial()}</Text>
-              </View>
+          {/* Avatar y información del usuario lado a lado */}
+          <View style={styles.profileHeaderRow}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarInitial}>{getUserInitial()}</Text>
             </View>
             
-            <View style={styles.userInfo}>
+            {/* Columna de información del usuario */}
+            <View style={styles.userInfoColumn}>
               <Text style={styles.userName}>
                 {isGuest ? 'Usuario Invitado' : user?.nombre || 'Usuario'}
               </Text>
+              
               {!isGuest && user && (
                 <>
                   <View style={styles.contactInfo}>
-                    <MaterialIcons name="email" size={16} color={colors.textGray} />
+                    <MaterialIcons name="person" size={16} color={colors.textGray} />
                     <Text style={styles.userEmail}>{user.email}</Text>
                   </View>
                   <View style={styles.contactInfo}>
@@ -239,45 +237,47 @@ export default function ProfileScreen({ navigation }) {
                   </View>
                 </>
               )}
-              {isGuest && (
-                <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-                  <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
-                </TouchableOpacity>
-              )}
             </View>
-            
-            {!isGuest && (
-              <TouchableOpacity style={styles.createReportButton} onPress={handleCreateReport}>
-                <Text style={styles.createReportText}>Crear Reporte</Text>
-              </TouchableOpacity>
-            )}
           </View>
+          
+          {/* Botón Crear Reporte abajo de todo */}
+          {!isGuest && (
+            <TouchableOpacity style={styles.createReportButton} onPress={handleCreateReport}>
+              <Text style={styles.createReportText}>Crear Reporte</Text>
+            </TouchableOpacity>
+          )}
+          
+          {isGuest && (
+            <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+              <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
-        {/* Stats Cards - Como en la primera imagen: Total, Nuevos, En proceso, Resueltos */}
+        {/* Stats Cards - 4 cards blancas separadas como en la imagen */}
         <View style={styles.statsSection}>
           <View style={styles.statsRow}>
-            <View style={[styles.statCard, styles.totalCard]}>
-              <Text style={styles.totalNumber}>{reportStats.reportesCreados}</Text>
-              <Text style={styles.totalLabel}>Total</Text>
-              <Text style={styles.totalSubLabel}>reportes</Text>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>{reportStats.reportesCreados}</Text>
+              <Text style={styles.statLabel}>Total</Text>
+              <Text style={styles.statSubLabel}>reportes</Text>
             </View>
             
-            <View style={[styles.statCard, styles.newCard]}>
-              <Text style={styles.newNumber}>{reportStats.reportesNuevos}</Text>
-              <Text style={styles.newLabel}>Nuevos</Text>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>{reportStats.reportesNuevos}</Text>
+              <Text style={styles.statLabel}>Nuevos</Text>
             </View>
           </View>
           
           <View style={styles.statsRow}>
-            <View style={[styles.statCard, styles.processCard]}>
-              <Text style={styles.processNumber}>{reportStats.reportesEnProceso}</Text>
-              <Text style={styles.processLabel}>En proceso</Text>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>{reportStats.reportesEnProceso}</Text>
+              <Text style={styles.statLabel}>En proceso</Text>
             </View>
             
-            <View style={[styles.statCard, styles.resolvedCard]}>
-              <Text style={styles.resolvedNumber}>{reportStats.reportesResueltos}</Text>
-              <Text style={styles.resolvedLabel}>Resueltos</Text>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>{reportStats.reportesResueltos}</Text>
+              <Text style={styles.statLabel}>Resueltos</Text>
             </View>
           </View>
         </View>
@@ -302,7 +302,7 @@ export default function ProfileScreen({ navigation }) {
           </View>
         )}
 
-        {/* Botones Principales - Como en la tercera imagen */}
+        {/* Botones Principales - Como en la imagen */}
         <View style={styles.mainButtons}>
           <TouchableOpacity style={styles.mainButton} onPress={handleMyReports}>
             <MaterialIcons name="description" size={20} color={colors.primary} />
@@ -315,13 +315,25 @@ export default function ProfileScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* Botón de cerrar sesión - Como en la tercera imagen */}
+        {/* Botón de cerrar sesión - Como en la imagen */}
         {!isGuest && (
           <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <Text style={styles.logoutText}>✕ Cerrar Sesión</Text>
+            <Text style={styles.logoutText}>✕ Cerrar Sesion</Text>
           </TouchableOpacity>
         )}
       </ScrollView>
+      
+      {/* CustomConfirmAlert para confirmación de logout */}
+      <CustomConfirmAlert
+        visible={alertVisible}
+        title="Cerrar Sesión"
+        message="¿Estás seguro que deseas cerrar sesión?"
+        type="warning"
+        confirmText="Cerrar Sesión"
+        cancelText="Cancelar"
+        onConfirm={confirmLogout}
+        onCancel={cancelLogout}
+      />
     </View>
   );
 }
@@ -338,55 +350,47 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
 
-  // Profile Section - Header con avatar, nombre y botón
+  // Profile Section - Header con layout horizontal como en la imagen
   profileSection: {
-    backgroundColor: colors.backgroundWhite,
     marginHorizontal: 16,
     marginTop: 16,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: colors.shadowColor,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    paddingHorizontal: 20,
   },
-  profileHeader: {
+  profileHeaderRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    justifyContent: 'space-between',
-  },
-  avatarContainer: {
-    marginRight: 16,
+    marginBottom: 20,
   },
   avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 80, // Avatar más grande
+    height: 80,
+    borderRadius: 40,
     backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
+    marginRight: 16,
   },
   avatarInitial: {
-    fontSize: 24,
+    fontSize: 32, // Letra más grande para el avatar más grande
     fontWeight: '700',
     color: colors.textWhite,
   },
-  userInfo: {
+  userInfoColumn: {
     flex: 1,
+    justifyContent: 'flex-start',
   },
   userName: {
-    fontSize: 24, // Nombre más grande como en la imagen
+    fontSize: 24,
     fontWeight: '700',
     color: colors.textDark,
-    marginBottom: 8,
     lineHeight: 28,
+    marginBottom: 8,
   },
   contactInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
-    gap: 6,
+    marginBottom: 6,
+    gap: 8,
   },
   userEmail: {
     fontSize: 14,
@@ -399,8 +403,9 @@ const styles = StyleSheet.create({
   createReportButton: {
     backgroundColor: colors.primary,
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
   },
   createReportText: {
     fontSize: 14,
@@ -413,7 +418,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     alignSelf: 'flex-start',
-    marginTop: 4,
   },
   loginButtonText: {
     fontSize: 12,
@@ -421,10 +425,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Stats Section - Tarjetas como en la primera imagen
+  // Stats Section - 4 cards blancas uniformes como en la imagen
   statsSection: {
     marginHorizontal: 16,
-    marginTop: 16,
+    marginTop: 24,
   },
   statsRow: {
     flexDirection: 'row',
@@ -436,83 +440,30 @@ const styles = StyleSheet.create({
     backgroundColor: colors.backgroundWhite,
     borderRadius: 12,
     padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: colors.shadowColor,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
-  // Tarjeta Total (azul)
-  totalCard: {
-    backgroundColor: '#f0f4ff',
-    borderLeftWidth: 4,
-    borderLeftColor: colors.primary,
-  },
-  totalNumber: {
+  statNumber: {
     fontSize: 28,
     fontWeight: '700',
-    color: colors.primary,
+    color: colors.primary, // Número azul
     marginBottom: 4,
   },
-  totalLabel: {
+  statLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.primary,
+    color: colors.textDark, // Texto negro
+    textAlign: 'center',
   },
-  totalSubLabel: {
+  statSubLabel: {
     fontSize: 12,
     color: colors.textGray,
-  },
-  // Tarjeta Nuevos
-  newCard: {
-    backgroundColor: '#e6f3ff',
-    borderLeftWidth: 4,
-    borderLeftColor: '#0ea5e9',
-  },
-  newNumber: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#0ea5e9',
-    marginBottom: 4,
-  },
-  newLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#0ea5e9',
-  },
-  // Tarjeta En Proceso
-  processCard: {
-    backgroundColor: '#fff7e6',
-    borderLeftWidth: 4,
-    borderLeftColor: '#f59e0b',
-  },
-  processNumber: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#f59e0b',
-    marginBottom: 4,
-  },
-  processLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#f59e0b',
-  },
-  // Tarjeta Resueltos
-  resolvedCard: {
-    backgroundColor: '#f0fdf4',
-    borderLeftWidth: 4,
-    borderLeftColor: '#10b981',
-  },
-  resolvedNumber: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#10b981',
-    marginBottom: 4,
-  },
-  resolvedLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#10b981',
+    textAlign: 'center',
   },
 
   // Reports Section
@@ -547,7 +498,7 @@ const styles = StyleSheet.create({
     width: '48%',
   },
 
-  // Main Buttons - Como en la tercera imagen
+  // Main Buttons - Como en la imagen
   mainButtons: {
     flexDirection: 'row',
     gap: 12,
@@ -562,14 +513,9 @@ const styles = StyleSheet.create({
     gap: 8,
     backgroundColor: colors.backgroundWhite,
     paddingVertical: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-    shadowColor: colors.shadowColor,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
   },
   mainButtonText: {
     fontSize: 16,
@@ -577,20 +523,15 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
 
-  // Logout Button - Como en la tercera imagen
+  // Logout Button - Como en la imagen
   logoutButton: {
     backgroundColor: '#dc2626',
     marginHorizontal: 16,
     marginTop: 16,
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: colors.shadowColor,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   logoutText: {
     fontSize: 16,
