@@ -10,8 +10,6 @@ import {
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { colors } from '../../utils/colors';
 import {
-  STATUS_CONFIG,
-  PRIORITY_CONFIG,
   getCategoryConfig,
   getStatusConfig,
   getPriorityConfig,

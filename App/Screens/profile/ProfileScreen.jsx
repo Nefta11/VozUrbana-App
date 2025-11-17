@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,9 +12,11 @@ import { colors } from '../../utils/colors';
 import CustomHeader from '../../Components/navigation/CustomHeader';
 import ReportCard from '../../Components/ReportCard/ReportCard';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 
 export default function ProfileScreen({ navigation }) {
   const { user, logout, isAuthenticated } = useAuth();
+  const { showToast } = useToast();
   const isGuest = !isAuthenticated || !user;
 
   // Reportes de ejemplo del usuario (formato compatible con ReportCard)
@@ -148,10 +150,15 @@ export default function ProfileScreen({ navigation }) {
           style: 'destructive',
           onPress: async () => {
             await logout();
-            navigation.getParent()?.reset({
+            // Navegar a Landing
+            navigation.reset({
               index: 0,
-              routes: [{ name: 'Home' }],
+              routes: [{ name: 'Landing' }],
             });
+            // Mostrar toast de despedida
+            setTimeout(() => {
+              showToast('Cerraste sesión correctamente', 'info');
+            }, 500);
           },
         },
       ]
