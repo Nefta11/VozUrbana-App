@@ -43,19 +43,46 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     console.log(' Attempting login for:', email);
 
+    // Verificar si es login de administrador
+    if (email === 'admin@vozurbana.com' && password === '12345678') {
+      const adminUser = {
+        id: 'admin-001',
+        nombre: 'Administrador',
+        email: 'admin@vozurbana.com',
+        role: 'admin',
+        fechaRegistro: new Date().toISOString(),
+      };
+      const adminToken = 'admin-token-' + Date.now();
+
+      await AsyncStorage.setItem('authToken', adminToken);
+      await AsyncStorage.setItem('user', JSON.stringify(adminUser));
+
+      setToken(adminToken);
+      setUser(adminUser);
+
+      console.log('✅ Admin login successful');
+      return { success: true, user: adminUser };
+    }
+
     try {
       const response = await ApiService.login(email, password);
       console.log('Login response:', response);
 
       const { token: authToken, user: userData } = response;
 
+      // Asegurar que el usuario tenga un role por defecto
+      const userWithRole = {
+        ...userData,
+        role: userData.role || 'user',
+      };
+
       await AsyncStorage.setItem('authToken', authToken);
-      await AsyncStorage.setItem('user', JSON.stringify(userData));
+      await AsyncStorage.setItem('user', JSON.stringify(userWithRole));
 
       setToken(authToken);
-      setUser(userData);
+      setUser(userWithRole);
 
-      return { success: true, user: userData };
+      return { success: true, user: userWithRole };
     } catch (error) {
       console.error(' Login error:', error);
       return { success: false, error: error.message };

@@ -13,15 +13,18 @@ const { width } = Dimensions.get('window');
  * Componente personalizado que replica el estilo de navegación de Spotify
  */
 const BottomTabBar = ({ state, descriptors, navigation }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const rootNavigation = useNavigation();
   const [showAuthAlert, setShowAuthAlert] = useState(false);
 
-  // Tabs que requieren autenticación
-  const protectedTabs = ['CreateReport', 'Profile'];
+  // Verificar si el usuario es admin
+  const isAdmin = user?.role === 'admin';
 
-  // Configuración de los tabs con iconos y labels
-  const tabConfig = {
+  // Tabs que requieren autenticación
+  const protectedTabs = ['CreateReport', 'Profile', 'Admin', 'Dashboard'];
+
+  // Configuración de los tabs con iconos y labels para usuarios normales
+  const userTabConfig = {
     Home: {
       icon: 'home-outline',
       iconType: 'Ionicons',
@@ -47,6 +50,37 @@ const BottomTabBar = ({ state, descriptors, navigation }) => {
       activeIcon: 'person',
     },
   };
+
+  // Configuración de los tabs para administradores
+  const adminTabConfig = {
+    Home: {
+      icon: 'home-outline',
+      iconType: 'Ionicons',
+      label: 'Inicio',
+      activeIcon: 'home',
+    },
+    Admin: {
+      icon: 'shield-outline',
+      iconType: 'Ionicons',
+      label: 'Administración',
+      activeIcon: 'shield',
+    },
+    Dashboard: {
+      icon: 'stats-chart-outline',
+      iconType: 'Ionicons',
+      label: 'Dashboard',
+      activeIcon: 'stats-chart',
+    },
+    Profile: {
+      icon: 'person-outline',
+      iconType: 'Ionicons',
+      label: 'Perfil',
+      activeIcon: 'person',
+    },
+  };
+
+  // Seleccionar configuración según el rol
+  const tabConfig = isAdmin ? adminTabConfig : userTabConfig;
 
   const renderIcon = (iconName, iconType, size, color) => {
     switch (iconType) {
