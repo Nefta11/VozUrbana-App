@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, Dimensions } from 'react-native';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { colors } from '../../utils/colors';
+import { useAuth } from '../../context/AuthContext';
+import CustomConfirmAlert from '../generals/CustomConfirmAlert';
 
 const { width } = Dimensions.get('window');
 
@@ -10,7 +13,13 @@ const { width } = Dimensions.get('window');
  * Componente personalizado que replica el estilo de navegación de Spotify
  */
 const BottomTabBar = ({ state, descriptors, navigation }) => {
-  
+  const { isAuthenticated } = useAuth();
+  const rootNavigation = useNavigation();
+  const [showAuthAlert, setShowAuthAlert] = useState(false);
+
+  // Tabs que requieren autenticación
+  const protectedTabs = ['CreateReport', 'Profile'];
+
   // Configuración de los tabs con iconos y labels
   const tabConfig = {
     Home: {
@@ -51,68 +60,91 @@ const BottomTabBar = ({ state, descriptors, navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.tabContainer}>
-        {state.routes.map((route, index) => {
-          const { options } = descriptors[route.key];
-          const isFocused = state.index === index;
-          const config = tabConfig[route.name];
+    <>
+      <View style={styles.container}>
+        <View style={styles.tabContainer}>
+          {state.routes.map((route, index) => {
+            const { options } = descriptors[route.key];
+            const isFocused = state.index === index;
+            const config = tabConfig[route.name];
 
-          if (!config) return null;
+            if (!config) return null;
 
-          const onPress = () => {
-            const event = navigation.emit({
-              type: 'tabPress',
-              target: route.key,
-              canPreventDefault: true,
-            });
+            const onPress = () => {
+              // Verificar si el tab requiere autenticación
+              if (protectedTabs.includes(route.name) && !isAuthenticated) {
+                setShowAuthAlert(true);
+                return;
+              }
 
-            if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name);
-            }
-          };
+              const event = navigation.emit({
+                type: 'tabPress',
+                target: route.key,
+                canPreventDefault: true,
+              });
 
-          const onLongPress = () => {
-            navigation.emit({
-              type: 'tabLongPress',
-              target: route.key,
-            });
-          };
+              if (!isFocused && !event.defaultPrevented) {
+                navigation.navigate(route.name);
+              }
+            };
 
-          return (
-            <TouchableOpacity
-              key={index}
-              accessibilityRole="button"
-              accessibilityState={isFocused ? { selected: true } : {}}
-              accessibilityLabel={options.tabBarAccessibilityLabel}
-              testID={options.tabBarTestID}
-              onPress={onPress}
-              onLongPress={onLongPress}
-              style={styles.tab}
-              activeOpacity={0.8}
-            >
-              <View style={styles.tabContent}>
-                {renderIcon(
-                  isFocused ? config.activeIcon : config.icon,
-                  config.iconType,
-                  26,
-                  isFocused ? colors.primary : colors.textGray
-                )}
-                <Text 
-                  style={[
-                    styles.tabLabel,
-                    { color: isFocused ? colors.primary : colors.textGray }
-                  ]}
-                >
-                  {config.label}
-                </Text>
-                {isFocused && <View style={styles.activeIndicator} />}
-              </View>
-            </TouchableOpacity>
-          );
-        })}
+            const onLongPress = () => {
+              navigation.emit({
+                type: 'tabLongPress',
+                target: route.key,
+              });
+            };
+
+            return (
+              <TouchableOpacity
+                key={index}
+                accessibilityRole="button"
+                accessibilityState={isFocused ? { selected: true } : {}}
+                accessibilityLabel={options.tabBarAccessibilityLabel}
+                testID={options.tabBarTestID}
+                onPress={onPress}
+                onLongPress={onLongPress}
+                style={styles.tab}
+                activeOpacity={0.8}
+              >
+                <View style={styles.tabContent}>
+                  {renderIcon(
+                    isFocused ? config.activeIcon : config.icon,
+                    config.iconType,
+                    26,
+                    isFocused ? colors.primary : colors.textGray
+                  )}
+                  <Text
+                    style={[
+                      styles.tabLabel,
+                      { color: isFocused ? colors.primary : colors.textGray }
+                    ]}
+                  >
+                    {config.label}
+                  </Text>
+                  {isFocused && <View style={styles.activeIndicator} />}
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
-    </View>
+
+      {/* Alert de autenticación requerida */}
+      <CustomConfirmAlert
+        visible={showAuthAlert}
+        title="Autenticación requerida"
+        message="Debes iniciar sesión para acceder a esta sección."
+        type="info"
+        confirmText="Iniciar sesión"
+        cancelText="Cancelar"
+        onConfirm={() => {
+          setShowAuthAlert(false);
+          rootNavigation.navigate('Login');
+        }}
+        onCancel={() => setShowAuthAlert(false)}
+      />
+    </>
   );
 };
 
