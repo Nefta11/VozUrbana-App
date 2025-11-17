@@ -6,12 +6,17 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  TextInput,
+  Platform,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors } from '../../utils/colors';
 import CustomHeader from '../../Components/navigation/CustomHeader';
 import ReportCard from '../../Components/ReportCard/ReportCard';
 import CustomConfirmAlert from '../../Components/generals/CustomConfirmAlert';
+import LoadingModal from '../../Components/generals/LoadingModal';
+import CustomAlert from '../../Components/generals/CustomAlert';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 
@@ -19,9 +24,22 @@ export default function ProfileScreen({ navigation }) {
   const { user, logout, isAuthenticated } = useAuth();
   const { showToast } = useToast();
   const isGuest = !isAuthenticated || !user;
-  
+
   // Estado para CustomConfirmAlert
   const [alertVisible, setAlertVisible] = useState(false);
+
+  // Estado para controlar tab activo (reportes o datos)
+  const [activeTab, setActiveTab] = useState('reportes');
+
+  // Estados para el formulario de Mis Datos
+  const [formNombre, setFormNombre] = useState(user?.nombre || '');
+  const [formEmail, setFormEmail] = useState(user?.email || '');
+  const [formFechaNacimiento, setFormFechaNacimiento] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  // Estados para LoadingModal y CustomAlert de éxito
+  const [loadingVisible, setLoadingVisible] = useState(false);
+  const [successAlertVisible, setSuccessAlertVisible] = useState(false);
 
   // Reportes de ejemplo del usuario (formato compatible con ReportCard)
   const [userReports] = useState([
@@ -176,6 +194,10 @@ export default function ProfileScreen({ navigation }) {
       Alert.alert('Acceso Requerido', 'Debes iniciar sesión para ver tus reportes');
       return;
     }
+    setActiveTab('reportes');
+  };
+
+  const handleViewAllReports = () => {
     navigation.navigate('Reports');
   };
 
@@ -184,7 +206,30 @@ export default function ProfileScreen({ navigation }) {
       Alert.alert('Acceso Requerido', 'Debes iniciar sesión para editar tus datos');
       return;
     }
-    Alert.alert('Mis Datos', 'Funcionalidad en desarrollo');
+    setActiveTab('datos');
+  };
+
+  const handleUpdateData = async () => {
+    setLoadingVisible(true);
+    // Simular llamada a API
+    setTimeout(() => {
+      setLoadingVisible(false);
+      setSuccessAlertVisible(true);
+    }, 2000);
+  };
+
+  const onDateChange = (event, selectedDate) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setFormFechaNacimiento(selectedDate);
+    }
+  };
+
+  const formatDate = (date) => {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
   };
 
   const handleReportPress = (report) => {
@@ -254,64 +299,155 @@ export default function ProfileScreen({ navigation }) {
           )}
         </View>
 
-        {/* Stats Cards - 4 cards blancas separadas como en la imagen */}
-        <View style={styles.statsSection}>
-          <View style={styles.statsRow}>
-            <View style={styles.statCard}>
-              <Text style={styles.statNumber}>{reportStats.reportesCreados}</Text>
-              <Text style={styles.statLabel}>Total</Text>
-              <Text style={styles.statSubLabel}>reportes</Text>
-            </View>
-            
-            <View style={styles.statCard}>
-              <Text style={styles.statNumber}>{reportStats.reportesNuevos}</Text>
-              <Text style={styles.statLabel}>Nuevos</Text>
-            </View>
-          </View>
-          
-          <View style={styles.statsRow}>
-            <View style={styles.statCard}>
-              <Text style={styles.statNumber}>{reportStats.reportesEnProceso}</Text>
-              <Text style={styles.statLabel}>En proceso</Text>
-            </View>
-            
-            <View style={styles.statCard}>
-              <Text style={styles.statNumber}>{reportStats.reportesResueltos}</Text>
-              <Text style={styles.statLabel}>Resueltos</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Sección de Reportes usando ReportCard */}
-        {!isGuest && userReports.length > 0 && (
-          <View style={styles.reportsSection}>
-            <View style={styles.reportsSectionHeader}>
-              <Text style={styles.sectionTitle}>Mis Reportes</Text>
-              <TouchableOpacity onPress={handleMyReports}>
-                <Text style={styles.viewAllText}>Ver todos</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.reportsGrid}>
-              {userReports.slice(0, 4).map((report) => (
-                <View key={report.id} style={styles.reportCardWrapper}>
-                  <ReportCard report={report} onPress={handleReportPress} />
+        {/* Contenido de Mis Reportes */}
+        {activeTab === 'reportes' && (
+          <>
+            {/* Stats Cards - 4 cards blancas separadas */}
+            <View style={styles.statsSection}>
+              <View style={styles.statsRow}>
+                <View style={styles.statCard}>
+                  <Text style={styles.statNumber}>{reportStats.reportesCreados}</Text>
+                  <Text style={styles.statLabel}>Total</Text>
+                  <Text style={styles.statSubLabel}>reportes</Text>
                 </View>
-              ))}
+
+                <View style={styles.statCard}>
+                  <Text style={styles.statNumber}>{reportStats.reportesNuevos}</Text>
+                  <Text style={styles.statLabel}>Nuevos</Text>
+                </View>
+              </View>
+
+              <View style={styles.statsRow}>
+                <View style={styles.statCard}>
+                  <Text style={styles.statNumber}>{reportStats.reportesEnProceso}</Text>
+                  <Text style={styles.statLabel}>En proceso</Text>
+                </View>
+
+                <View style={styles.statCard}>
+                  <Text style={styles.statNumber}>{reportStats.reportesResueltos}</Text>
+                  <Text style={styles.statLabel}>Resueltos</Text>
+                </View>
+              </View>
             </View>
+
+            {/* Sección de Reportes usando ReportCard */}
+            {!isGuest && userReports.length > 0 && (
+              <View style={styles.reportsSection}>
+                <View style={styles.reportsSectionHeader}>
+                  <Text style={styles.sectionTitle}>Mis Reportes</Text>
+                  <TouchableOpacity onPress={handleViewAllReports}>
+                    <Text style={styles.viewAllText}>Ver todos</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.reportsGrid}>
+                  {userReports.slice(0, 4).map((report) => (
+                    <View key={report.id} style={styles.reportCardWrapper}>
+                      <ReportCard report={report} onPress={handleReportPress} />
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+          </>
+        )}
+
+        {/* Contenido de Mis Datos */}
+        {activeTab === 'datos' && (
+          <View style={styles.myDataSection}>
+            <View style={styles.formGroup}>
+              <Text style={styles.formLabel}>Nombre:</Text>
+              <TextInput
+                style={styles.formInput}
+                value={formNombre}
+                onChangeText={setFormNombre}
+                placeholder="Tu nombre"
+                placeholderTextColor={colors.textGray}
+              />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.formLabel}>Email:</Text>
+              <TextInput
+                style={styles.formInput}
+                value={formEmail}
+                onChangeText={setFormEmail}
+                placeholder="tu@email.com"
+                placeholderTextColor={colors.textGray}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.formLabel}>Fecha de Nacimiento:</Text>
+              <TouchableOpacity
+                style={styles.formInput}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <Text style={styles.dateText}>{formatDate(formFechaNacimiento)}</Text>
+              </TouchableOpacity>
+              {showDatePicker && (
+                <DateTimePicker
+                  value={formFechaNacimiento}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={onDateChange}
+                  maximumDate={new Date()}
+                />
+              )}
+            </View>
+
+            <TouchableOpacity style={styles.updateButton} onPress={handleUpdateData}>
+              <Text style={styles.updateButtonText}>Actualizar</Text>
+            </TouchableOpacity>
           </View>
         )}
 
-        {/* Botones Principales - Como en la imagen */}
-        <View style={styles.mainButtons}>
-          <TouchableOpacity style={styles.mainButton} onPress={handleMyReports}>
-            <MaterialIcons name="description" size={20} color={colors.primary} />
-            <Text style={styles.mainButtonText}>Mis Reportes</Text>
+        {/* Botones Principales - Mis Reportes / Mis Datos */}
+        <View style={[styles.mainButtons, activeTab === 'datos' && styles.mainButtonsExtraMargin]}>
+          <TouchableOpacity
+            style={[
+              styles.mainButton,
+              activeTab === 'reportes' && styles.mainButtonActive,
+            ]}
+            onPress={handleMyReports}
+          >
+            <MaterialIcons
+              name="description"
+              size={20}
+              color={activeTab === 'reportes' ? colors.textWhite : colors.primary}
+            />
+            <Text
+              style={[
+                styles.mainButtonText,
+                activeTab === 'reportes' && styles.mainButtonTextActive,
+              ]}
+            >
+              Mis Reportes
+            </Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.mainButton} onPress={handleMyData}>
-            <MaterialIcons name="settings" size={20} color={colors.primary} />
-            <Text style={styles.mainButtonText}>Mis Datos</Text>
+
+          <TouchableOpacity
+            style={[
+              styles.mainButton,
+              activeTab === 'datos' && styles.mainButtonActive,
+            ]}
+            onPress={handleMyData}
+          >
+            <MaterialIcons
+              name="settings"
+              size={20}
+              color={activeTab === 'datos' ? colors.textWhite : colors.primary}
+            />
+            <Text
+              style={[
+                styles.mainButtonText,
+                activeTab === 'datos' && styles.mainButtonTextActive,
+              ]}
+            >
+              Mis Datos
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -333,6 +469,19 @@ export default function ProfileScreen({ navigation }) {
         cancelText="Cancelar"
         onConfirm={confirmLogout}
         onCancel={cancelLogout}
+      />
+
+      {/* LoadingModal para actualización de datos */}
+      <LoadingModal visible={loadingVisible} message="Actualizando..." />
+
+      {/* CustomAlert para éxito en actualización */}
+      <CustomAlert
+        visible={successAlertVisible}
+        title="Éxito"
+        message="Actualizado correctamente"
+        type="success"
+        onClose={() => setSuccessAlertVisible(false)}
+        confirmText="Entendido"
       />
     </View>
   );
@@ -505,6 +654,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 16,
   },
+  mainButtonsExtraMargin: {
+    marginTop: 40,
+  },
   mainButton: {
     flex: 1,
     flexDirection: 'row',
@@ -517,10 +669,58 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: colors.primary,
   },
+  mainButtonActive: {
+    backgroundColor: colors.primary,
+  },
   mainButtonText: {
     fontSize: 16,
     fontWeight: '600',
     color: colors.primary,
+  },
+  mainButtonTextActive: {
+    color: colors.textWhite,
+  },
+
+  // My Data Form Section
+  myDataSection: {
+    marginHorizontal: 16,
+    marginTop: 24,
+  },
+  formGroup: {
+    marginBottom: 16,
+  },
+  formLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textDark,
+    marginBottom: 8,
+  },
+  formInput: {
+    backgroundColor: colors.backgroundWhite,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: colors.textDark,
+    borderWidth: 1,
+    borderColor: colors.borderLight || '#e0e0e0',
+  },
+  dateText: {
+    fontSize: 16,
+    color: colors.textDark,
+  },
+  updateButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  updateButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textWhite,
   },
 
   // Logout Button - Como en la imagen
