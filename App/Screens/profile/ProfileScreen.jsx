@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,20 +9,116 @@ import {
   StatusBar,
   Image,
   Alert,
+  FlatList,
 } from 'react-native';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { colors } from '../../utils/colors';
 import CustomHeader from '../../Components/navigation/CustomHeader';
+import ReportCard from '../../Components/ReportCard/ReportCard';
 
 export default function ProfileScreen({ navigation }) {
+  const [isGuest, setIsGuest] = useState(false); // Para detectar si es usuario invitado
   const [user, setUser] = useState({
-    nombre: 'Usuario Demo',
-    email: 'usuario@vozurbana.com',
+    id: 1, // ID del usuario para filtrar reportes
+    nombre: isGuest ? 'Usuario Invitado' : 'Orlando Méndez Montes',
+    email: isGuest ? null : 'om@gmail.com',
+    fechaRegistro: '23 de Octubre 2025',
     avatar: null,
-    reportesCreados: 5,
-    reportesResueltos: 2,
-    votos: 45,
+    reportesCreados: isGuest ? 0 : 24,
+    reportesNuevos: isGuest ? 0 : 1,
+    reportesEnProceso: isGuest ? 0 : 4,
+    reportesResueltos: isGuest ? 0 : 2,
   });
+
+  // Reportes de ejemplo del usuario (formato compatible con ReportCard)
+  const [userReports, setUserReports] = useState(isGuest ? [] : [
+    {
+      id: 1,
+      titulo: 'Semáforo dañado en intersección principal',
+      descripcion: 'El semáforo ubicado en la intersección de Av. Central con Calle 15 presenta fallas intermitentes, causando riesgo para peatones y conductores.',
+      categoria: 'Infraestructura',
+      estado: 'resuelto',
+      prioridad: 'alta',
+      fecha_creacion: '2025-11-15T08:30:00Z',
+      ubicacion: { latitud: 9.9326, longitud: -84.0775 },
+      imagen: 'https://example.com/semaforo.jpg',
+      votos_positivos: 12,
+      votos_negativos: 1,
+      comentarios: [{ id: 1, texto: 'Ya lo reporté también' }],
+      usuario_id: 1,
+    },
+    {
+      id: 2,
+      titulo: 'Fuga de agua en tubería principal',
+      descripcion: 'Se observa una fuga considerable de agua potable en la tubería principal, desperdiciando el recurso y creando charcos en la vía.',
+      categoria: 'Servicios Públicos',
+      estado: 'en_proceso',
+      prioridad: 'media',
+      fecha_creacion: '2025-11-14T14:20:00Z',
+      ubicacion: { latitud: 9.9280, longitud: -84.0830 },
+      imagen: null,
+      votos_positivos: 8,
+      votos_negativos: 0,
+      comentarios: [],
+      usuario_id: 1,
+    },
+    {
+      id: 3,
+      titulo: 'Bache profundo en avenida principal',
+      descripcion: 'Bache de gran tamaño que representa peligro para vehículos y motocicletas, especialmente en horas nocturnas.',
+      categoria: 'Infraestructura',
+      estado: 'nuevo',
+      prioridad: 'media',
+      fecha_creacion: '2025-11-13T16:45:00Z',
+      ubicacion: { latitud: 9.9350, longitud: -84.0820 },
+      imagen: 'https://example.com/bache.jpg',
+      votos_positivos: 15,
+      votos_negativos: 2,
+      comentarios: [{ id: 1, texto: 'Muy peligroso' }, { id: 2, texto: 'Urge reparación' }],
+      usuario_id: 1,
+    },
+    {
+      id: 4,
+      titulo: 'Luminaria pública sin funcionamiento',
+      descripcion: 'La luminaria en el parque central no funciona desde hace una semana, afectando la seguridad del área.',
+      categoria: 'Seguridad',
+      estado: 'nuevo',
+      prioridad: 'baja',
+      fecha_creacion: '2025-11-12T19:30:00Z',
+      ubicacion: { latitud: 9.9300, longitud: -84.0790 },
+      imagen: null,
+      votos_positivos: 6,
+      votos_negativos: 0,
+      comentarios: [],
+      usuario_id: 1,
+    },
+  ]);
+
+  // Filtrar reportes del usuario actual
+  const filteredUserReports = userReports.filter(report => report.usuario_id === user.id);
+
+  // Actualizar estadísticas basadas en reportes
+  useEffect(() => {
+    if (!isGuest) {
+      const creados = filteredUserReports.length;
+      const nuevos = filteredUserReports.filter(r => r.estado === 'nuevo').length;
+      const enProceso = filteredUserReports.filter(r => r.estado === 'en_proceso').length;
+      const resueltos = filteredUserReports.filter(r => r.estado === 'resuelto').length;
+      
+      setUser(prev => ({
+        ...prev,
+        reportesCreados: creados,
+        reportesNuevos: nuevos,
+        reportesEnProceso: enProceso,
+        reportesResueltos: resueltos,
+      }));
+    }
+  }, [isGuest, userReports]);
+
+  const handleLogin = () => {
+    Alert.alert('Iniciar Sesión', 'Redirigiendo al login...');
+    // navigation.navigate('Login');
+  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -34,10 +130,10 @@ export default function ProfileScreen({ navigation }) {
           text: 'Cerrar Sesión',
           style: 'destructive',
           onPress: () => {
-            // TODO: Limpiar token/sesión
+            setIsGuest(true);
             navigation.getParent()?.reset({
               index: 0,
-              routes: [{ name: 'Landing' }],
+              routes: [{ name: 'Home' }],
             });
           },
         },
@@ -45,12 +141,20 @@ export default function ProfileScreen({ navigation }) {
     );
   };
 
-  const handleEditProfile = () => {
-    Alert.alert('Editar Perfil', 'Funcionalidad en desarrollo');
+  const handleMyReports = () => {
+    if (isGuest) {
+      Alert.alert('Acceso Requerido', 'Debes iniciar sesión para ver tus reportes');
+      return;
+    }
+    Alert.alert('Mis Reportes', 'Navegando a mis reportes...');
   };
 
-  const handleChangePassword = () => {
-    Alert.alert('Cambiar Contraseña', 'Funcionalidad en desarrollo');
+  const handleMyData = () => {
+    if (isGuest) {
+      Alert.alert('Acceso Requerido', 'Debes iniciar sesión para editar tus datos');
+      return;
+    }
+    Alert.alert('Mis Datos', 'Navegando a editar datos...');
   };
 
   const handleInfoPress = () => {
@@ -59,58 +163,6 @@ export default function ProfileScreen({ navigation }) {
 
   const handleNotificationPress = () => {
     Alert.alert('Notificaciones', 'Configurar preferencias de notificaciones');
-  };
-
-  const menuItems = [
-    {
-      id: 1,
-      title: 'Mis Reportes',
-      icon: 'description',
-      iconType: 'MaterialIcons',
-      onPress: () => Alert.alert('Mis Reportes', 'Funcionalidad en desarrollo'),
-    },
-    {
-      id: 2,
-      title: 'Reportes Guardados',
-      icon: 'bookmark',
-      iconType: 'MaterialIcons',
-      onPress: () => Alert.alert('Guardados', 'Funcionalidad en desarrollo'),
-    },
-    {
-      id: 3,
-      title: 'Notificaciones',
-      icon: 'notifications',
-      iconType: 'MaterialIcons',
-      onPress: () => Alert.alert('Notificaciones', 'Funcionalidad en desarrollo'),
-    },
-    {
-      id: 4,
-      title: 'Configuración',
-      icon: 'settings',
-      iconType: 'MaterialIcons',
-      onPress: () => Alert.alert('Configuración', 'Funcionalidad en desarrollo'),
-    },
-    {
-      id: 5,
-      title: 'Ayuda y Soporte',
-      icon: 'help',
-      iconType: 'MaterialIcons',
-      onPress: () => Alert.alert('Ayuda', 'Funcionalidad en desarrollo'),
-    },
-    {
-      id: 6,
-      title: 'Acerca de',
-      icon: 'info',
-      iconType: 'MaterialIcons',
-      onPress: () => Alert.alert('Voz Urbana', 'Versión 1.0.0'),
-    },
-  ];
-
-  const renderIcon = (iconName, iconType, size, color) => {
-    if (iconType === 'MaterialIcons') {
-      return <MaterialIcons name={iconName} size={size} color={color} />;
-    }
-    return <Ionicons name={iconName} size={size} color={color} />;
   };
 
   return (
@@ -125,90 +177,115 @@ export default function ProfileScreen({ navigation }) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header con gradiente */}
-        <View style={styles.header}>
-          <View style={styles.headerContent}>
-            {/* Avatar */}
+        {/* Profile Header Section - Como en la primera imagen */}
+        <View style={styles.profileSection}>
+          <View style={styles.profileHeader}>
+            {/* Avatar circular con inicial */}
             <View style={styles.avatarContainer}>
-              {user.avatar ? (
-                <Image source={{ uri: user.avatar }} style={styles.avatar} />
-              ) : (
-                <View style={styles.avatarPlaceholder}>
-                  <MaterialIcons name="person" size={48} color={colors.textWhite} />
-                </View>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarInitial}>O</Text>
+              </View>
+            </View>
+            
+            <View style={styles.userInfo}>
+              <Text style={styles.userName}>{user.nombre}</Text>
+              {!isGuest && (
+                <>
+                  <View style={styles.contactInfo}>
+                    <MaterialIcons name="email" size={16} color={colors.textGray} />
+                    <Text style={styles.userEmail}>{user.email}</Text>
+                  </View>
+                  <View style={styles.contactInfo}>
+                    <MaterialIcons name="calendar-today" size={16} color={colors.textGray} />
+                    <Text style={styles.userDate}>Miembro desde {user.fechaRegistro}</Text>
+                  </View>
+                </>
               )}
-              <TouchableOpacity
-                style={styles.editAvatarButton}
-                onPress={handleEditProfile}
-              >
-                <MaterialIcons name="camera-alt" size={16} color={colors.textWhite} />
+              {isGuest && (
+                <Text style={styles.guestText}>Usuario Invitado</Text>
+              )}
+            </View>
+            
+            {!isGuest && (
+              <TouchableOpacity style={styles.createReportButton} onPress={() => Alert.alert('Crear Reporte')}>
+                <Text style={styles.createReportText}>Crear Reporte</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        {/* Stats Cards - Como en la primera imagen: Total, Nuevos, En proceso, Resueltos */}
+        <View style={styles.statsSection}>
+          <View style={styles.statsRow}>
+            <View style={[styles.statCard, styles.totalCard]}>
+              <Text style={styles.totalNumber}>{user.reportesCreados}</Text>
+              <Text style={styles.totalLabel}>Total</Text>
+              <Text style={styles.totalSubLabel}>reportes</Text>
+            </View>
+            
+            <View style={[styles.statCard, styles.newCard]}>
+              <Text style={styles.newNumber}>{user.reportesNuevos}</Text>
+              <Text style={styles.newLabel}>Nuevos</Text>
+            </View>
+          </View>
+          
+          <View style={styles.statsRow}>
+            <View style={[styles.statCard, styles.processCard]}>
+              <Text style={styles.processNumber}>{user.reportesEnProceso}</Text>
+              <Text style={styles.processLabel}>En proceso</Text>
+            </View>
+            
+            <View style={[styles.statCard, styles.resolvedCard]}>
+              <Text style={styles.resolvedNumber}>{user.reportesResueltos}</Text>
+              <Text style={styles.resolvedLabel}>Resueltos</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Sección de Reportes usando ReportCard */}
+        {!isGuest && filteredUserReports.length > 0 && (
+          <View style={styles.reportsSection}>
+            <View style={styles.reportsSectionHeader}>
+              <Text style={styles.sectionTitle}>Mis Reportes</Text>
+              <TouchableOpacity onPress={handleMyReports}>
+                <Text style={styles.viewAllText}>Ver todos</Text>
               </TouchableOpacity>
             </View>
-
-            {/* Info del usuario */}
-            <Text style={styles.userName}>{user.nombre}</Text>
-            <Text style={styles.userEmail}>{user.email}</Text>
-
-            {/* Botón editar perfil */}
-            <TouchableOpacity
-              style={styles.editProfileButton}
-              onPress={handleEditProfile}
-            >
-              <MaterialIcons name="edit" size={18} color={colors.primary} />
-              <Text style={styles.editProfileText}>Editar Perfil</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Estadísticas */}
-        <View style={styles.statsSection}>
-          <View style={styles.statCard}>
-            <MaterialIcons name="description" size={32} color={colors.primary} />
-            <Text style={styles.statNumber}>{user.reportesCreados}</Text>
-            <Text style={styles.statLabel}>Reportes Creados</Text>
-          </View>
-
-          <View style={styles.statCard}>
-            <MaterialIcons name="check-circle" size={32} color={colors.success} />
-            <Text style={styles.statNumber}>{user.reportesResueltos}</Text>
-            <Text style={styles.statLabel}>Resueltos</Text>
-          </View>
-
-          <View style={styles.statCard}>
-            <Ionicons name="thumbs-up" size={32} color={colors.warning} />
-            <Text style={styles.statNumber}>{user.votos}</Text>
-            <Text style={styles.statLabel}>Votos Recibidos</Text>
-          </View>
-        </View>
-
-        {/* Menú */}
-        <View style={styles.menuSection}>
-          {menuItems.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              style={styles.menuItem}
-              onPress={item.onPress}
-              activeOpacity={0.7}
-            >
-              <View style={styles.menuItemLeft}>
-                <View style={styles.menuItemIconContainer}>
-                  {renderIcon(item.icon, item.iconType, 22, colors.primary)}
+            
+            <View style={styles.reportsGrid}>
+              {filteredUserReports.slice(0, 4).map((report) => (
+                <View key={report.id} style={styles.reportCardWrapper}>
+                  <ReportCard
+                    report={report}
+                    onPress={(selectedReport) => {
+                      Alert.alert('Reporte', `Navegando al detalle de: ${selectedReport.titulo}`);
+                    }}
+                  />
                 </View>
-                <Text style={styles.menuItemText}>{item.title}</Text>
-              </View>
-              <MaterialIcons name="chevron-right" size={24} color={colors.textGray} />
-            </TouchableOpacity>
-          ))}
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Botones Principales - Como en la tercera imagen */}
+        <View style={styles.mainButtons}>
+          <TouchableOpacity style={styles.mainButton} onPress={handleMyReports}>
+            <MaterialIcons name="description" size={20} color={colors.primary} />
+            <Text style={styles.mainButtonText}>Mis Reportes</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.mainButton} onPress={handleMyData}>
+            <MaterialIcons name="settings" size={20} color={colors.primary} />
+            <Text style={styles.mainButtonText}>Mis Datos</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Botón de cerrar sesión */}
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <MaterialIcons name="logout" size={20} color={colors.danger} />
-          <Text style={styles.logoutText}>Cerrar Sesión</Text>
-        </TouchableOpacity>
-
-        {/* Versión */}
-        <Text style={styles.versionText}>Voz Urbana v1.0.0</Text>
+        {/* Botón de cerrar sesión - Como en la tercera imagen */}
+        {!isGuest && (
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Text style={styles.logoutText}>✕ Cerrar Sesión</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </View>
   );
@@ -226,180 +303,254 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
 
-  // Header
-  header: {
-    backgroundColor: colors.primary,
-    paddingTop: 28,
-    paddingBottom: 40,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
+  // Profile Section - Header con avatar, nombre y botón
+  profileSection: {
+    backgroundColor: colors.backgroundWhite,
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: colors.shadowColor,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  headerContent: {
-    alignItems: 'center',
-    paddingHorizontal: 20,
+  profileHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
   },
-
-  // Avatar
   avatarContainer: {
-    position: 'relative',
-    marginBottom: 16,
+    marginRight: 16,
   },
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-  },
-  avatarPlaceholder: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: colors.secondary,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 4,
-    borderColor: colors.textWhite,
   },
-  editAvatarButton: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.secondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: colors.primary,
-  },
-
-  // User Info
-  userName: {
+  avatarInitial: {
     fontSize: 24,
     fontWeight: '700',
     color: colors.textWhite,
+  },
+  userInfo: {
+    flex: 1,
+  },
+  userName: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.textDark,
+    marginBottom: 8,
+  },
+  contactInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 4,
+    gap: 6,
   },
   userEmail: {
     fontSize: 14,
-    color: colors.textWhite,
-    opacity: 0.9,
-    marginBottom: 16,
+    color: colors.textGray,
   },
-
-  // Edit Profile Button
-  editProfileButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: colors.textWhite,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+  userDate: {
+    fontSize: 14,
+    color: colors.textGray,
+  },
+  guestText: {
+    fontSize: 14,
+    color: colors.textGray,
+    fontStyle: 'italic',
+  },
+  createReportButton: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     borderRadius: 20,
   },
-  editProfileText: {
+  createReportText: {
     fontSize: 14,
+    color: colors.textWhite,
     fontWeight: '600',
-    color: colors.primary,
   },
 
-  // Stats Section
+  // Stats Section - Tarjetas como en la primera imagen
   statsSection: {
+    marginHorizontal: 16,
+    marginTop: 16,
+  },
+  statsRow: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingVertical: 24,
-    gap: 12,
+    gap: 8,
+    marginBottom: 8,
   },
   statCard: {
     flex: 1,
     backgroundColor: colors.backgroundWhite,
-    borderRadius: 16,
+    borderRadius: 12,
     padding: 16,
-    alignItems: 'center',
     shadowColor: colors.shadowColor,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.textDark,
-    marginTop: 8,
+  // Tarjeta Total (azul)
+  totalCard: {
+    backgroundColor: '#f0f4ff',
+    borderLeftWidth: 4,
+    borderLeftColor: colors.primary,
   },
-  statLabel: {
+  totalNumber: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.primary,
+    marginBottom: 4,
+  },
+  totalLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.primary,
+  },
+  totalSubLabel: {
     fontSize: 12,
     color: colors.textGray,
-    textAlign: 'center',
-    marginTop: 4,
+  },
+  // Tarjeta Nuevos
+  newCard: {
+    backgroundColor: '#e6f3ff',
+    borderLeftWidth: 4,
+    borderLeftColor: '#0ea5e9',
+  },
+  newNumber: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#0ea5e9',
+    marginBottom: 4,
+  },
+  newLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#0ea5e9',
+  },
+  // Tarjeta En Proceso
+  processCard: {
+    backgroundColor: '#fff7e6',
+    borderLeftWidth: 4,
+    borderLeftColor: '#f59e0b',
+  },
+  processNumber: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#f59e0b',
+    marginBottom: 4,
+  },
+  processLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#f59e0b',
+  },
+  // Tarjeta Resueltos
+  resolvedCard: {
+    backgroundColor: '#f0fdf4',
+    borderLeftWidth: 4,
+    borderLeftColor: '#10b981',
+  },
+  resolvedNumber: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#10b981',
+    marginBottom: 4,
+  },
+  resolvedLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#10b981',
   },
 
-  // Menu Section
-  menuSection: {
+  // Reports Section
+  reportsSection: {
+    marginHorizontal: 16,
+    marginTop: 16,
+  },
+  reportsSectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingHorizontal: 4,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.textDark,
+  },
+  viewAllText: {
+    fontSize: 14,
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  reportsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  reportCardWrapper: {
+    width: '48%',
+  },
+
+  // Main Buttons - Como en la tercera imagen
+  mainButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginHorizontal: 16,
+    marginTop: 16,
+  },
+  mainButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
     backgroundColor: colors.backgroundWhite,
-    marginHorizontal: 20,
-    borderRadius: 16,
-    overflow: 'hidden',
+    paddingVertical: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
     shadowColor: colors.shadowColor,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
-  },
-  menuItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  menuItemIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.primary + '15',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  menuItemText: {
+  mainButtonText: {
     fontSize: 16,
-    fontWeight: '500',
-    color: colors.textDark,
+    fontWeight: '600',
+    color: colors.primary,
   },
 
-  // Logout Button
+  // Logout Button - Como en la tercera imagen
   logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    backgroundColor: colors.backgroundWhite,
-    marginHorizontal: 20,
-    marginTop: 24,
+    backgroundColor: '#dc2626',
+    marginHorizontal: 16,
+    marginTop: 16,
     paddingVertical: 16,
     borderRadius: 12,
-    borderWidth: 2,
-    borderColor: colors.danger + '30',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: colors.shadowColor,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   logoutText: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.danger,
-  },
-
-  // Version
-  versionText: {
-    fontSize: 12,
-    color: colors.textGray,
-    textAlign: 'center',
-    marginTop: 24,
+    color: colors.textWhite,
   },
 });
