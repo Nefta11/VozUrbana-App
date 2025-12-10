@@ -342,63 +342,162 @@ La aplicación debe cumplir con WCAG 2.1 nivel AA, incluyendo soporte para lecto
 
 ## ✏️ Sketches
 
-### Sketch 1: Splash y Loading screen
-![Sketch](./docs/screenshots/splashyloadingS.png)
+> Bocetos iniciales a mano alzada que representan las primeras ideas del diseño de la aplicación.
+
+<div align="center">
+
+### Sketch 1: Splash y Loading Screen
+<img src="./docs/screenshots/splashyloadingS.png" alt="Splash y Loading" width="700"/>
+
+---
 
 ### Sketch 2: Login y Registro
-![Sketch](./docs/screenshots/loginregistroS.png)
+<img src="./docs/screenshots/loginregistroS.png" alt="Login y Registro" width="700"/>
+
+---
 
 ### Sketch 3: Pantalla Principal (Home)
-![Sketch](./docs/screenshots/homeS.png)
+<img src="./docs/screenshots/homeS.png" alt="Home Screen" width="700"/>
+
+---
 
 ### Sketch 4: Formulario de Reporte
-![Sketch](./docs/screenshots/crearreporteS.png)
+<img src="./docs/screenshots/crearreporteS.png" alt="Crear Reporte" width="700"/>
 
-### Sketch 5: Perfil de Usuario y  Mapa Interactivo
-![Sketch](./docs/screenshots/perfiluserymapaS.png)
+---
+
+### Sketch 5: Perfil de Usuario y Mapa Interactivo
+<img src="./docs/screenshots/perfiluserymapaS.png" alt="Perfil y Mapa" width="700"/>
+
+---
 
 ### Sketch 6: Dashboard
-![Sketch](./docs/screenshots/dashboardS.png)
+<img src="./docs/screenshots/dashboardS.png" alt="Dashboard" width="700"/>
+
+---
 
 ### Sketch 7: Configuración
-![Sketch](./docs/screenshots/perfilconfigS.png)
+<img src="./docs/screenshots/perfilconfigS.png" alt="Configuración" width="700"/>
 
+</div>
 
 ---
 
 ## 🎨 Wireframes
 
-### Wireframe 1: Splash Screen (Pantalla de Inicio)
-![Wireframe Splash](./docs/wireframes/splash.png)
+> Diseños de baja fidelidad que definen la estructura y organización de los elementos en cada pantalla.
 
----
+<div align="center">
+
+<table>
+<tr>
+<td align="center" width="50%">
+
+### Wireframe 1: Splash Screen
+<img src="./docs/wireframes/splash.png" alt="Wireframe Splash" width="350"/>
+
+**Elementos:**
+- Logo VozUrbana centrado
+- Animación de carga
+- Indicador de progreso
+- Transición suave a Landing
+
+</td>
+<td align="center" width="50%">
 
 ### Wireframe 2: Login y Registro
-![Wireframe Login/Registro](./docs/wireframes/loginregistro.png)
----
+<img src="./docs/wireframes/loginregistro.png" alt="Wireframe Login" width="350"/>
 
-### Wireframe 3: Home Screen (Pantalla Principal)
-![Wireframe Home](./docs/wireframes/homepage.png)
----
+**Elementos:**
+- Formulario de inicio de sesión
+- Botón "Iniciar con Google"
+- Campos: Email y contraseña
+- Opción de registro
+- Validación de campos
+
+</td>
+</tr>
+
+<tr>
+<td align="center" width="50%">
+
+### Wireframe 3: Home Screen
+<img src="./docs/wireframes/homepage.png" alt="Wireframe Home" width="350"/>
+
+**Elementos:**
+- Header con menú y notificaciones
+- Sección "Reportes Destacados"
+- Grid de categorías con iconos
+- Vista previa del mapa
+- Bottom navigation bar (5 tabs)
+
+</td>
+<td align="center" width="50%">
 
 ### Wireframe 4: Crear Reporte
-![Wireframe Create Report](./docs/wireframes/createreport.png)
+<img src="./docs/wireframes/createreport.png" alt="Wireframe Create Report" width="350"/>
 
----
+**Elementos:**
+- Progress indicator (pasos 1-4)
+- Selector de categorías en grid
+- Campos de formulario
+- Selector de prioridad
+- Captura/selección de fotos
+- Mapa para ubicación precisa
 
-### Wireframe 5: Vista de Detalle de Reporte
-![Wireframe Report Detail](./docs/wireframes/reportview.png)
+</td>
+</tr>
 
----
+<tr>
+<td align="center" width="50%">
+
+### Wireframe 5: Vista de Detalle
+<img src="./docs/wireframes/reportview.png" alt="Wireframe Report Detail" width="350"/>
+
+**Elementos:**
+- Galería de imágenes con slider
+- Información completa del reporte
+- Badge de categoría y prioridad
+- Timeline de estados
+- Mapa con ubicación exacta
+- Botones de acción
+
+</td>
+<td align="center" width="50%">
 
 ### Wireframe 6: Perfil de Usuario
-![Wireframe Profile](./docs/wireframes/porfileview.png)
+<img src="./docs/wireframes/porfileview.png" alt="Wireframe Profile" width="350"/>
 
+**Elementos:**
+- Avatar circular editable
+- Nombre y email del usuario
+- Cards con estadísticas (4 métricas)
+- Tabs: Mis Reportes / Guardados
+- Lista scrolleable de reportes
+- Gráfico de contribución
 
----
+</td>
+</tr>
+
+<tr>
+<td align="center" colspan="2">
 
 ### Wireframe 7: Acerca de Nosotros
-![Wireframe About Us](./docs/wireframes/aboutus.png)
+<img src="./docs/wireframes/aboutus.png" alt="Wireframe About Us" width="350"/>
+
+**Elementos:**
+- Información de la empresa/proyecto
+- Misión y visión
+- Equipo de desarrollo
+- Información de contacto
+- Links a redes sociales
+- Versión de la aplicación
+
+</td>
+</tr>
+</table>
+
+</div>
 
 ---
 
@@ -406,104 +505,107 @@ La aplicación debe cumplir con WCAG 2.1 nivel AA, incluyendo soporte para lecto
 
 > Los mockups muestran el diseño final de alta fidelidad con colores, tipografías, iconos y elementos visuales completos.
 
+<div align="center">
+
+<table>
+<tr>
+<td align="center" width="50%">
+
 ### Mockup 1: Splash Screen
-![Mockup Splash](./docs/mockups/splashscreen.png)
+<img src="./docs/mockups/splashscreen.png" alt="Mockup Splash" width="350"/>
 
 **Detalles de diseño:**
-- Background con gradient principal (#4F46E5 a #10B981)
-- Logo VozUrbana animado con efecto fade-in
+- Background con gradient principal
+- Logo VozUrbana animado
 - Loader circular con colores de marca
 - Transición suave de 2 segundos
-- Tipografía Inter Bold para branding
+- Tipografía Inter Bold
 
----
+</td>
+<td align="center" width="50%">
 
 ### Mockup 2: Login y Registro
-![Mockup Login/Registro](./docs/mockups/loginscreen.png)
+<img src="./docs/mockups/loginscreen.png" alt="Mockup Login" width="350"/>
 
 **Detalles de diseño:**
 - Background gradient sutil
-- Inputs con bordes redondeados y estados hover/focus/error
-- Paleta de colores aplicada (Primary, Secondary)
-- Iconos de @expo/vector-icons
-- Validación visual con colores (Success: verde, Error: rojo)
-- Sombras sutiles en cards (shadow-md)
+- Botón "Iniciar con Google"
+- Inputs con estados hover/focus/error
+- Paleta de colores aplicada
+- Validación visual con colores
+- Sombras sutiles en cards
 
----
+</td>
+</tr>
 
-### Mockup 3: Home Screen (Pantalla Principal)
-![Mockup Home](./docs/mockups/homepage.png)
+<tr>
+<td align="center" width="50%">
+
+### Mockup 3: Home Screen
+<img src="./docs/mockups/homepage.png" alt="Mockup Home" width="350"/>
 
 **Detalles de diseño:**
-- Header con logo de marca
-- Cards de reportes destacados con sombras y bordes redondeados
-- Badges de prioridad con colores diferenciados:
-  - Crítica: #EF4444 (Rojo)
-  - Alta: #F59E0B (Ámbar)
-  - Media: #3B82F6 (Azul)
-  - Baja: #6B7280 (Gris)
-- Grid de categorías con iconos personalizados y colores
-- Mapa preview con estilo personalizado
-- Bottom tabs con indicador activo y micro-interacciones
-- Tipografía Inter para todo el contenido
+- Header con gradient de marca
+- Cards con sombras y bordes redondeados
+- Badges de prioridad diferenciados
+- Grid de categorías con iconos
+- Mapa preview estilizado
+- Bottom tabs con indicador activo
+- Tipografía Inter
 
----
+</td>
+<td align="center" width="50%">
 
 ### Mockup 4: Crear Reporte
-![Mockup Create Report](./docs/mockups/createreport.png)
+<img src="./docs/mockups/createreport.png" alt="Mockup Create Report" width="350"/>
 
 **Detalles de diseño:**
-- Progress steps con animación y colores de estado
-- Categorías con estados hover/active/disabled
-- Selector de prioridad con radio buttons estilizados
-- Campos de formulario con:
-  - Labels flotantes
-  - Validación visual en tiempo real
-  - Contador de caracteres
-  - Placeholders descriptivos
-- Image picker con preview en grid
-- Mapa interactivo para selección de ubicación
-- Botones con estados disabled/enabled/loading
-- Micro-interacciones al completar cada paso
+- Progress steps animados
+- Categorías con estados interactivos
+- Selector de prioridad estilizado
+- Labels flotantes
+- Validación en tiempo real
+- Image picker con preview
+- Micro-interacciones
 
----
+</td>
+</tr>
 
-### Mockup 5: Vista de Detalle de Reporte
-![Mockup Report Detail](./docs/mockups/reportview.png)
+<tr>
+<td align="center" width="50%">
+
+### Mockup 5: Vista de Detalle
+<img src="./docs/mockups/reportview.png" alt="Mockup Report Detail" width="350"/>
 
 **Detalles de diseño:**
-- Timeline vertical de estados con:
-  - Iconos personalizados
-  - Línea conectora con gradient
-  - Timestamps formateados
-- Secciones organizadas con dividers
-- Map preview con marker personalizado
-- Action buttons flotantes:
-  - Compartir (con sheet de opciones)
-  - Guardar (con animación de feedback)
-  - Reportar problema
-- Chip de categoría y badge de prioridad
-- Información del usuario con avatar
+- Gallery de imágenes fullscreen
+- Timeline vertical de estados
+- Iconos personalizados
+- Map preview con marker
+- Action buttons flotantes
+- Chip de categoría y badge
+- Avatar del usuario
 
----
+</td>
+<td align="center" width="50%">
 
 ### Mockup 6: Perfil de Usuario
-![Mockup Profile](./docs/mockups/porfileuser.png)
+<img src="./docs/mockups/porfileuser.png" alt="Mockup Profile" width="350"/>
 
 **Detalles de diseño:**
-- Avatar con border gradient animado
+- Avatar con border gradient
 - Header con background gradient
-- Stats cards con:
-  - Iconos y colores diferenciados
-  - Números grandes destacados
-  - Animación al cargar
-- Gráfico circular de progreso con colores de marca
-- Lista de reportes con:
-  - Thumbnails redondeados
-  - Estados con badges
-  - Swipe actions (editar, eliminar)
+- Stats cards con iconos
+- Gráfico circular de progreso
+- Lista con thumbnails
+- Achievement badges animados
 - Tabs con indicador deslizante
-- Botón de edición con ícono
+
+</td>
+</tr>
+</table>
+
+</div>
 
 ---
 ## 🔗 Prototipo Navegacional
