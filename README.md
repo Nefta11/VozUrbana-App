@@ -632,7 +632,7 @@ La aplicación debe cumplir con WCAG 2.1 nivel AA, incluyendo soporte para lecto
 ## 📊 Presentación
 
 ### Link a Presentación
-**Google Slides:** [VozUrbana - Presentación Final](https://docs.google.com/presentation/d/vozurbana-presentacion)
+**Google Drive:** [VozUrbana - Presentación Final](https://drive.google.com/file/d/1JyCYMOzJQJOFjrdSfnNyGAZjqFP_UZpm/view?usp=sharing)
 
 ---
 
